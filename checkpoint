@@ -1,2 +1,2 @@
-model_checkpoint_path: "C:\\Users\\ninja\\Privat\\Programming\\deepLearning\\model.tflearn"
-all_model_checkpoint_paths: "C:\\Users\\ninja\\Privat\\Programming\\deepLearning\\model.tflearn"
+model_checkpoint_path: "C:\\Users\\ninja\\Privat\\Programming\\fh-campus-deep-learning\\model.tflearn"
+all_model_checkpoint_paths: "C:\\Users\\ninja\\Privat\\Programming\\fh-campus-deep-learning\\model.tflearn"

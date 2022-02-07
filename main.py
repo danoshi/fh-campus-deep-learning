@@ -1,44 +1,43 @@
 import nltk
+import numpy as np
 from nltk.stem.lancaster import LancasterStemmer
+from tensorflow.python.framework import ops
 
 stemmer = LancasterStemmer()
 nltk.download('punkt')
 
-import numpy
 import tflearn
-import tensorflow
 import random
 import json
 
 with open("intents.json") as file:
     data = json.load(file)
 
-words = []
+training_sentences = []
 labels = []
-docs_x = []
-docs_y = []
+training_labels = []
+responses = []
 
 for intent in data["intents"]:
     for pattern in intent["patterns"]:
         wrds = nltk.word_tokenize(pattern)
-        words.extend(wrds)
-        docs_x.append(wrds)
-        docs_y.append(intent["tag"])
+        training_sentences.extend(wrds)
+        training_labels.append(wrds)
+        responses.append(intent["tag"])
 
         if intent["tag"] not in labels:
             labels.append(intent["tag"])
 
-words = [stemmer.stem(w.lower()) for w in words if w not in "?"]
+words = [stemmer.stem(w.lower()) for w in training_sentences if w not in "?"]
 words = sorted(list(set(words)))
-
+words_len = len(words)
 labels = sorted(labels)
-
 training = []
 output = []
 
 out_empty = [0 for _ in range(len(labels))]
 
-for x, doc in enumerate(docs_x):
+for x, doc in enumerate(training_labels):
     bag = []
     wrds = [stemmer.stem(w) for w in doc]
     for w in words:
@@ -48,15 +47,15 @@ for x, doc in enumerate(docs_x):
             bag.append(0)
 
     output_row = out_empty[:]
-    output_row[labels.index(docs_y[x])] = 1
+    output_row[labels.index(responses[x])] = 1
     training.append(bag)
     output.append(output_row)
 
-training = numpy.array(training)
-output = numpy.array(output)
+training = np.array(training)
+output = np.array(output)
 
 # building the model
-tensorflow.compat.v1.reset_default_graph()
+ops.reset_default_graph()
 net = tflearn.input_data(shape=[None, len(training[0])])
 net = tflearn.fully_connected(net, 8)
 net = tflearn.fully_connected(net, 8)
@@ -81,7 +80,7 @@ def bag_of_words(s, words):
             if w == se:
                 bag[i] = 1
 
-    return numpy.array(bag)
+    return np.array(bag)
 
 
 def chat():
@@ -91,14 +90,18 @@ def chat():
         if inp.lower() == "quit":
             break
 
-        results = model.predict([bag_of_words(inp, words)])
-        results_index = numpy.argmax(results)
+        results = model.predict([bag_of_words(inp, words)])[0]
+        results_index = np.argmax(results)
         tag = labels[results_index]
+        
+        if results[results_index] > 0.6:
 
-        for tg in data["intents"]:
-            if tg['tag'] == tag:
-                responses = tg['responses']
-        print(random.choice(responses))
+            for tg in data["intents"]:
+                if tg['tag'] == tag:
+                    responses = tg['responses']
+            print(random.choice(responses))
+        else:
+            print("Please can you reformulate your question.")
 
 
 chat()
