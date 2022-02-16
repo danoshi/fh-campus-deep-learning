@@ -93,7 +93,7 @@ def chat():
         results = model.predict([bag_of_words(inp, words)])[0]
         results_index = np.argmax(results)
         tag = labels[results_index]
-        
+
         if results[results_index] > 0.6:
 
             for tg in data["intents"]:
